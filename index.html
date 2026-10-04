@@ -33,6 +33,15 @@
   html:not(.dark) .strip-dot { background: #cbd5e1; border-color: #94a3b8; }
   .strip-done { background: #b45309 !important; border-color: #f59e0b; }
   .strip-now { background: #f59e0b !important; border-color: #fff; transform: scale(1.5); box-shadow: 0 0 8px #f59e0b; }
+  .cdot { width: 13px; height: 13px; border-radius: 9999px; border: 1.5px solid #fbbf24; background: transparent; flex: none; padding: 0; cursor: pointer; }
+  .cdot-big { width: 17px; height: 17px; border-color: #7dd3fc; border-width: 2px; }
+  html:not(.dark) .cdot { border-color: #b45309; }
+  html:not(.dark) .cdot-big { border-color: #0369a1; }
+  .cdot-done { background: #b45309; }
+  .cdot-big.cdot-done { background: #0369a1; }
+  .cdot-now { background: #f59e0b; border-color: #fff7ed; box-shadow: 0 0 8px #f59e0b; transform: scale(1.3); }
+  .cdot-big.cdot-now { background: #0ea5e9; }
+  .cdot-soft { border-style: dashed; box-shadow: 0 0 6px #38bdf8; }
   ::-webkit-scrollbar { height: 8px; width: 8px; }
   ::-webkit-scrollbar-thumb { background: #475569; border-radius: 8px; }
 </style>
@@ -79,7 +88,9 @@
       <h2 id="mysteryName" class="font-bold text-amber-300">Peristiwa Gembira</h2>
       <span id="posLabel" class="text-xs text-slate-400">1 / 88</span>
     </div>
-    <svg id="rosarySvg" class="w-full mx-auto" role="img" aria-label="Visual rosario — klik manik untuk pindah"></svg>
+    <svg id="rosarySvg" class="w-full mx-auto hidden lg:block" role="img" aria-label="Visual rosario — klik manik untuk pindah"></svg>
+    <div id="rosaryCompact" class="lg:hidden" role="img" aria-label="Ringkasan rosario — ketuk titik untuk pindah"></div>
+    <p id="compactNow" class="lg:hidden text-xs text-center text-amber-200/90 mt-1"></p>
     <p class="text-[11px] text-slate-500 mt-1 text-center">Klik manik untuk melompat · emas = posisi saat ini</p>
   </section>
 

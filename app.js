@@ -122,17 +122,42 @@
   // Layout: ellipse loop (5 decades) + pendant tail.
   // beadMap: stepIndex -> bead element id
   let beadStep = []; // beadIdx -> stepIndex (first step that lights it)
-  // Teardrop loop: round top, tapered at the bottom junction (a = PI).
-  // Extra arc before each big bead creates visible decade gaps.
-  function loopPoints(cx, cy, rx, ry, n, gap) {
-    const total = n + 5 * gap;
-    const pts = [];
-    for (let i = 0; i < n; i++) {
-      const u = (i + Math.floor(i / 11) * gap) / total;
-      const a = Math.PI + u * Math.PI * 2; // start at junction, clockwise
+  // Teardrop loop with beads spaced evenly by ARC LENGTH (no overlap),
+  // instead of by angle (which bunches beads at the narrow ends).
+  // u=0 at the junction (bottom), clockwise. Extra arc before each big
+  // bead keeps the 5 decades readable as groups.
+  function loopPoints(cx, cy, rx, ry, n, extra) {
+    const pt = (u) => {
+      const a = Math.PI + u * Math.PI * 2;
       const p = (1 - Math.cos(a - Math.PI)) / 2; // 0 at junction -> 1 at top
       const w = 1 - 0.5 * Math.pow(1 - p, 1.6);
-      pts.push([cx + rx * Math.sin(a) * w, cy - ry * Math.cos(a)]);
+      return [cx + rx * Math.sin(a) * w, cy - ry * Math.cos(a)];
+    };
+    const M = 1440, dense = [pt(0)], cum = [0];
+    for (let k = 1; k <= M; k++) {
+      const p = pt(k / M), q = dense[k - 1];
+      dense.push(p);
+      cum.push(cum[k - 1] + Math.hypot(p[0] - q[0], p[1] - q[1]));
+    }
+    const L = cum[M];
+    const radii = [];
+    for (let i = 0; i < n; i++) radii.push(i % 11 === 0 ? 7.5 : 5);
+    const sumD = radii.reduce((a, r) => a + 2 * r, 0);
+    const g = (L - sumD - 5 * extra) / n; // even edge-to-edge gap
+    const at = (s) => {
+      s = ((s % L) + L) % L;
+      let lo = 0, hi = M;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < s) lo = mid + 1; else hi = mid; }
+      const k = Math.max(1, lo), s0 = cum[k - 1], s1 = cum[k];
+      const t = s1 > s0 ? (s - s0) / (s1 - s0) : 0;
+      const A = dense[k - 1], B = dense[k];
+      return [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t];
+    };
+    const pts = [];
+    let cursor = 0;
+    for (let i = 0; i < n; i++) {
+      pts.push(at(cursor + radii[i]));
+      cursor += 2 * radii[i] + g + ((i + 1) % 11 === 0 ? extra : 0);
     }
     return pts;
   }
@@ -143,12 +168,12 @@
     beadStep = [];
     const W = 360, H = 480;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    const cx = 180, cy = 140, rx = 126, ry = 104;
+    const cx = 180, cy = 140, rx = 140, ry = 118;
     // junction (centerpiece) at bottom of the teardrop; pendant hangs below it
-    const pendantX = cx, pendantTopY = cy + ry; // ~244
-    const crossTop = pendantTopY + 166; // crucifix top (~410)
+    const pendantX = cx, pendantTopY = cy + ry; // ~258
+    const crossTop = pendantTopY + 138; // crucifix top (~396)
     const N = 55; // 5 x (1 Bapa Kami + 10 Salam Maria)
-    const pts = loopPoints(cx, cy, rx, ry, N, 0.9);
+    const pts = loopPoints(cx, cy, rx, ry, N, 7);
     // draw loop string
     const path = document.createElementNS(NS, "path");
     path.setAttribute("d", `M ${pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L ")} Z`);
@@ -177,7 +202,7 @@
       const sub = i % 11;
       const c = document.createElementNS(NS, "circle");
       c.setAttribute("cx", pts[i][0].toFixed(1)); c.setAttribute("cy", pts[i][1].toFixed(1));
-      c.setAttribute("r", isBig ? 10 : 6.2);
+      c.setAttribute("r", isBig ? 7.5 : 5);
       c.setAttribute("class", isBig ? "bead bead-big" : "bead bead-small");
       c.dataset.bead = "L" + i;
       c.style.cursor = "pointer";
@@ -229,15 +254,15 @@
     // P0 Bapa Kami, P1-P3 Salam Maria, P4 Kemuliaan, then the medal.
     // Centers computed from radii so every gap is an even 10px.
     const order = [
-      { key: "P4", r: 10, cls: "bead bead-big", label: "Kemuliaan" },
-      { key: "P3", r: 6.2, cls: "bead bead-small", label: "Salam Maria 3/3" },
-      { key: "P2", r: 6.2, cls: "bead bead-small", label: "Salam Maria 2/3" },
-      { key: "P1", r: 6.2, cls: "bead bead-small", label: "Salam Maria 1/3" },
-      { key: "P0", r: 10, cls: "bead bead-big", label: "Bapa Kami" }
+      { key: "P4", r: 7.5, cls: "bead bead-big", label: "Kemuliaan" },
+      { key: "P3", r: 5, cls: "bead bead-small", label: "Salam Maria 3/3" },
+      { key: "P2", r: 5, cls: "bead bead-small", label: "Salam Maria 2/3" },
+      { key: "P1", r: 5, cls: "bead bead-small", label: "Salam Maria 1/3" },
+      { key: "P0", r: 7.5, cls: "bead bead-big", label: "Bapa Kami" }
     ];
     const pendBeads = [];
     {
-      let yy = pendantTopY + 30 + 10; // below medal (ry 30) + even gap
+      let yy = pendantTopY + 38; // below medal + even gap
       order.forEach((b) => {
         yy += b.r;
         const c = document.createElementNS(NS, "circle");
@@ -251,7 +276,7 @@
         c.appendChild(t);
         beadsG.appendChild(c);
         pendBeads.push(c);
-        yy += b.r + 10;
+        yy += b.r + 8;
       });
     }
     // crucifix with corpus, drawn with rects + circle
@@ -297,7 +322,47 @@
         if (!Number.isNaN(si)) goTo(si);
       });
     });
+    renderCompact();
     paintBeads();
+  }
+
+  // Compact rosary for mobile: pendant row + 5 decade rows of tappable dots.
+  function renderCompact() {
+    const comp = $("#rosaryCompact");
+    if (!comp) return;
+    comp.innerHTML = "";
+    const goBead = (key) => {
+      const p = (window.__primary || {})[key];
+      if (p !== undefined) goTo(p);
+    };
+    const dot = (key, big, label) => {
+      const b = document.createElement("button");
+      b.className = "cdot" + (big ? " cdot-big" : "");
+      b.dataset.bead = key;
+      b.title = label;
+      b.setAttribute("aria-label", label);
+      b.addEventListener("click", () => goBead(key));
+      return b;
+    };
+    const pend = document.createElement("div");
+    pend.className = "flex items-center justify-center gap-1.5 mb-2 flex-wrap";
+    pend.appendChild(dot("X", true, "Salib"));
+    pend.appendChild(dot("P0", true, "Bapa Kami"));
+    ["P1", "P2", "P3"].forEach((k, i) => pend.appendChild(dot(k, false, `Salam Maria ${i + 1}/3`)));
+    pend.appendChild(dot("P4", true, "Kemuliaan"));
+    pend.appendChild(dot("C", true, "Medali Bunda Maria"));
+    comp.appendChild(pend);
+    for (let d = 0; d < 5; d++) {
+      const row = document.createElement("div");
+      row.className = "flex items-center justify-center gap-1.5 mb-1.5 flex-wrap";
+      const tag = document.createElement("span");
+      tag.className = "text-[10px] text-slate-500 w-3";
+      tag.textContent = d + 1;
+      row.appendChild(tag);
+      row.appendChild(dot("L" + (d * 11), true, `Peristiwa ${d + 1}/5 — Bapa Kami`));
+      for (let j = 1; j <= 10; j++) row.appendChild(dot("L" + (d * 11 + j), false, `Peristiwa ${d + 1}/5 — Salam ${j}/10`));
+      comp.appendChild(row);
+    }
   }
 
   // Only real prayer beads map hard; announcements/closings map soft to the nearest bead.
@@ -351,6 +416,19 @@
     });
     const cur = beadForStep(state.pos);
     if (cur && all[cur.key]) all[cur.key].classList.add(cur.soft ? "bead-soft" : "bead-now");
+    window.__primary = primary;
+    // compact mobile dots mirror the same state
+    document.querySelectorAll("#rosaryCompact [data-bead]").forEach((el) => {
+      const k = el.dataset.bead;
+      el.classList.toggle("cdot-done", primary[k] !== undefined && primary[k] < state.pos);
+      el.classList.toggle("cdot-now", !!(cur && cur.key === k && !cur.soft));
+      el.classList.toggle("cdot-soft", !!(cur && cur.key === k && cur.soft));
+    });
+    const cn = $("#compactNow");
+    if (cn) {
+      const s = steps[state.pos];
+      cn.textContent = `${state.pos + 1}/${steps.length} · ${s.title}${s.sub ? " — " + s.sub : ""}`;
+    }
     // update mini dots strip
     const strip = $("#beadStrip");
     if (strip) {
