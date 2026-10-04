@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rosario — Doa Rosario Interaktif (Indonesia)</title>
+<meta name="description" content="Doa Rosario interaktif Bahasa Indonesia: sendiri atau kelompok (Zoom/Meet). Gratis, responsif, dengan visual rosario dan mode multiuser." />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="./prayers.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  html:not(.dark) { color-scheme: light; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  .pray-p { margin-bottom: .9rem; line-height: 1.9; }
+  .bead { fill: #1e293b; stroke: #f59e0b; stroke-width: 1.4; transition: all .25s; }
+  html:not(.dark) .bead { fill: #e2e8f0; }
+  .bead-done { fill: #b45309 !important; stroke: #fbbf24; opacity: .85; }
+  .bead-now { fill: #f59e0b !important; stroke: #fff7ed; stroke-width: 2.4; filter: drop-shadow(0 0 8px #f59e0b); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 4px #f59e0b);} 50% { filter: drop-shadow(0 0 12px #fbbf24);} }
+  .bead-center { fill: #0ea5e9; stroke: #e0f2fe; stroke-width: 1.4; }
+  .bead-cross { fill: #f59e0b; }
+  #rosarySvg { color: #64748b; max-height: 62vh; }
+  .strip-dot { width: 10px; height: 10px; border-radius: 9999px; background: #334155; flex: none; border: 1px solid #475569; }
+  html:not(.dark) .strip-dot { background: #cbd5e1; border-color: #94a3b8; }
+  .strip-done { background: #b45309 !important; border-color: #f59e0b; }
+  .strip-now { background: #f59e0b !important; border-color: #fff; transform: scale(1.5); box-shadow: 0 0 8px #f59e0b; }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #475569; border-radius: 8px; }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col">
+
+<!-- Top progress -->
+<div class="h-1 w-full bg-slate-800"><div id="progressFill" class="h-1 bg-amber-400 transition-all" style="width:0%"></div></div>
+
+<!-- Header -->
+<header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 flex items-center gap-2 sm:gap-3 flex-wrap">
+    <div class="flex items-center gap-2 mr-auto">
+      <span class="text-xl">📿</span>
+      <div>
+        <div class="font-bold leading-tight">Rosario <span class="font-normal text-slate-400 text-sm hidden sm:inline">· Doa Rosario Indonesia</span></div>
+        <div id="autoInfo" class="text-[11px] text-slate-400 leading-tight"></div>
+      </div>
+    </div>
+    <span id="modeBadge" class="text-[11px] px-2 py-1 rounded-full bg-slate-800 border border-slate-700">Sendiri</span>
+    <select id="mysterySelect" class="text-xs bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 outline-none focus:border-amber-400" title="Pilih peristiwa">
+      <option value="gembira">Gembira (Sen/Sab)</option>
+      <option value="sedih">Sedih (Sel/Jum)</option>
+      <option value="mulia">Mulia (Rab/Min)</option>
+      <option value="terang">Terang (Kam)</option>
+    </select>
+    <div class="flex items-center gap-1">
+      <button id="fontMinus" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Kecilkan huruf">A−</button>
+      <button id="fontPlus" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Besarkan huruf">A+</button>
+      <button id="btnFull" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Layar penuh (untuk share Zoom/Meet)">⛶</button>
+      <button id="btnDark" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Mode gelap/terang">◐</button>
+      <button id="btnRestart" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Ulangi dari awal">↺</button>
+      <button id="btnSetup" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold" title="Pengaturan mode & nama">⚙ Mode</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-5 py-3 sm:py-5 grid gap-4 lg:grid-cols-[400px_1fr] items-start pb-32">
+
+  <!-- Left: rosary -->
+  <section class="lg:sticky lg:top-16 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 sm:p-4">
+    <div class="flex items-center justify-between mb-1">
+      <h2 id="mysteryName" class="font-bold text-amber-300">Peristiwa Gembira</h2>
+      <span id="posLabel" class="text-xs text-slate-400">1 / 88</span>
+    </div>
+    <svg id="rosarySvg" class="w-full mx-auto" role="img" aria-label="Visual rosario — klik manik untuk pindah"></svg>
+    <p class="text-[11px] text-slate-500 mt-1 text-center">Klik manik untuk melompat · emas = posisi saat ini</p>
+  </section>
+
+  <!-- Right: prayer card -->
+  <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-7 relative min-h-[50vh]">
+    <div class="flex items-start gap-3">
+      <div class="flex-1">
+        <div id="kicker" class="text-[11px] uppercase tracking-widest text-sky-300 font-semibold"></div>
+        <h1 id="pTitle" class="text-2xl sm:text-3xl font-bold mt-1"></h1>
+        <div id="pSub" class="text-amber-200/90 mt-1 font-medium"></div>
+      </div>
+      <div class="text-right flex flex-col items-end gap-2">
+        <div id="giliran" class="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-sm font-bold shadow" style="display:none">
+          Giliran: <span id="giliranName"></span>
+          <div id="salamCount" class="text-[11px] font-normal"></div>
+        </div>
+        <div id="leaderHint" class="text-[11px] px-2 py-1 rounded-full border border-slate-700 text-slate-300" style="display:none">
+          Dipimpin: <span id="leaderName" class="font-semibold"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="ayatWrap" class="mt-4 rounded-xl border-l-4 border-amber-400 bg-slate-800/70 p-3 sm:p-4">
+      <p id="ayatText" class="italic leading-relaxed text-slate-100"></p>
+      <p id="ayatRef" class="text-xs text-amber-300 mt-1 font-semibold"></p>
+    </div>
+
+    <div id="pBody" class="mt-4 text-slate-100"></div>
+
+    <div class="mt-6 flex items-center justify-between text-xs text-slate-500">
+      <span>Spasi / Enter / → = Lanjut · ← = Kembali · geser di HP</span>
+      <button id="btnSetup2" class="underline underline-offset-2">Ubah nama/mode</button>
+    </div>
+  </section>
+</main>
+
+<!-- Bead strip (mobile + quick nav) -->
+<div class="fixed bottom-16 left-0 right-0 z-20 px-3">
+  <div id="beadStrip" class="max-w-7xl mx-auto flex gap-1.5 overflow-x-auto py-2 px-2 rounded-xl bg-slate-950/80 border border-slate-800 backdrop-blur"></div>
+</div>
+
+<!-- Fixed bottom nav -->
+<nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+  <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+    <button id="btnBack" class="justify-self-start px-4 sm:px-6 py-2.5 rounded-xl border border-slate-700 font-semibold disabled:opacity-30">← Kembali</button>
+    <span class="text-[11px] text-slate-500 hidden sm:block">Bagikan layar ini di Zoom / Google Meet</span>
+    <button id="btnNext" class="justify-self-end px-6 sm:px-10 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">Lanjut →</button>
+  </div>
+</nav>
+
+<!-- Setup modal -->
+<div id="setupModal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
+  <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+    <h2 class="font-bold text-lg">Mulai Doa Rosario</h2>
+    <p class="text-xs text-slate-400 mb-3">Cocok untuk doa sendiri maupun share-screen kelompok via Zoom / Google Meet.</p>
+
+    <label class="text-xs font-semibold text-slate-300">Mode</label>
+    <div class="grid grid-cols-2 gap-2 mt-1 mb-3">
+      <label class="rounded-xl border border-slate-700 p-3 text-sm cursor-pointer has-checked:border-amber-400 has-checked:bg-amber-500/10">
+        <input type="radio" name="mode" value="single" class="mr-1" /> Sendiri
+      </label>
+      <label class="rounded-xl border border-slate-700 p-3 text-sm cursor-pointer has-checked:border-amber-400 has-checked:bg-amber-500/10">
+        <input type="radio" name="mode" value="group" class="mr-1" /> Kelompok
+      </label>
+    </div>
+
+    <label class="text-xs font-semibold text-slate-300">Peristiwa</label>
+    <select id="mysteryChoice" class="mt-1 mb-3 w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400">
+      <option value="gembira">Peristiwa Gembira</option>
+      <option value="sedih">Peristiwa Sedih</option>
+      <option value="mulia">Peristiwa Mulia</option>
+      <option value="terang">Peristiwa Terang</option>
+    </select>
+
+    <div id="groupOpts">
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+          <label class="text-xs font-semibold text-slate-300">Jumlah umat (2–50)</label>
+          <input id="userCount" type="number" min="2" max="50" value="4" class="mt-1 w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400" />
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300">Nama pemimpin</label>
+          <input id="leaderInput" value="Pemimpin" class="mt-1 w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400" />
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <label class="text-xs font-semibold text-slate-300">Nama umat (bergiliran Salam Maria 1–50, berlanjut antar-peristiwa)</label>
+        <button id="resetNames" class="text-[11px] underline text-slate-400">Reset jadi Umat 1..N</button>
+      </div>
+      <div id="nameList" class="mt-1 space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+    </div>
+
+    <button id="setupClose" class="mt-4 w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">Mulai Berdoa →</button>
+    <p class="text-[11px] text-slate-500 mt-2 text-center">Keyboard: Spasi/Enter = Lanjut · ←/Backspace = Kembali · F11/⛶ untuk fullscreen saat share.</p>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
