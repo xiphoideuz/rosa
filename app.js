@@ -364,7 +364,7 @@
       b.dataset.bead = k;
       b.title = k === "P0" ? "Bapa Kami" : `Salam Maria ${i + 1}/3`;
       b.setAttribute("aria-label", k === "P0" ? "Bapa Kami" : `Salam Maria ${i + 1}/3`);
-      b.innerHTML = k === "P0" ? "&#9795;" : /* empty, label only */ "";
+      b.innerHTML = "";
       b.addEventListener("click", () => goBead(k));
       pend.appendChild(b);
     });

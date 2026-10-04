@@ -14,10 +14,12 @@
   .pray-p { margin-bottom: .7rem; line-height: 1.5; }
   .bead { transition: all .25s; }
   /* unprayed beads are hollow; prayed ones fill in */
-  .bead-small { fill: none; stroke: #fbbf24; stroke-width: 1.6; }
-  html:not(.dark) .bead-small { stroke: #b45309; }
-  .bead-big { fill: none; stroke: #7dd3fc; stroke-width: 2; }
-  html:not(.dark) .bead-big { stroke: #0369a1; }
+  .bead-small { fill: #b45309; stroke: #fbbf24; stroke-width: 1.6; transition: fill .25s; }
+  html:not(.dark) .bead-small { fill: #d97706; }
+  .dark .bead-small { fill: #6b450e; }
+  .bead-big { fill: #0369a1; stroke: #7dd3fc; stroke-width: 2; transition: fill .25s; }
+  html:not(.dark) .bead-big { fill: #0284c7; }
+  .dark .bead-big { fill: #00509e; }
   .bead-done { opacity: .92; }
   .bead-small.bead-done { fill: #b45309; }
   .bead-big.bead-done { fill: #0369a1; }
