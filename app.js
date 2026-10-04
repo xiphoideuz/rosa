@@ -346,11 +346,39 @@
     };
     const pend = document.createElement("div");
     pend.className = "flex items-center justify-center gap-1.5 mb-2 flex-wrap";
-    pend.appendChild(dot("X", true, "Salib"));
-    pend.appendChild(dot("P0", true, "Bapa Kami"));
-    ["P1", "P2", "P3"].forEach((k, i) => pend.appendChild(dot(k, false, `Salam Maria ${i + 1}/3`)));
+    // First bead: cross (unicode) instead of dot
+    const crossBtn = document.createElement("button");
+    crossBtn.type = "button";
+    crossBtn.className = "cdot cdot-big";
+    crossBtn.dataset.bead = "X";
+    crossBtn.title = "Tanda Salib";
+    crossBtn.setAttribute("aria-label", "Tanda Salib");
+    // Use unicode latin cross ✝
+    crossBtn.innerHTML = "✝";
+    crossBtn.addEventListener("click", () => goTo(0));
+    pend.appendChild(crossBtn);
+    ["P0", "P1", "P2", "P3"].forEach((k, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cdot" + (k === "P0" ? " cdot-big" : "");
+      b.dataset.bead = k;
+      b.title = k === "P0" ? "Bapa Kami" : `Salam Maria ${i + 1}/3`;
+      b.setAttribute("aria-label", k === "P0" ? "Bapa Kami" : `Salam Maria ${i + 1}/3`);
+      b.innerHTML = k === "P0" ? "&#9795;" : /* empty, label only */ "";
+      b.addEventListener("click", () => goBead(k));
+      pend.appendChild(b);
+    });
     pend.appendChild(dot("P4", true, "Kemuliaan"));
-    pend.appendChild(dot("C", true, "Medali Bunda Maria"));
+    // Medal: use ✻ (virtue/medal outline) as symbol; lights up with same classes
+    const medalBtn = document.createElement("button");
+    medalBtn.type = "button";
+    medalBtn.className = "cdot cdot-big";
+    medalBtn.dataset.bead = "C";
+    medalBtn.title = "Medali Bunda Maria";
+    medalBtn.setAttribute("aria-label", "Medali Bunda Maria");
+    medalBtn.innerHTML = "✻";
+    medalBtn.addEventListener("click", () => goTo(steps.length - 1));
+    pend.appendChild(medalBtn);
     comp.appendChild(pend);
     for (let d = 0; d < 5; d++) {
       const row = document.createElement("div");
@@ -420,9 +448,12 @@
     // compact mobile dots mirror the same state
     document.querySelectorAll("#rosaryCompact [data-bead]").forEach((el) => {
       const k = el.dataset.bead;
+      const isCurrent = cur && cur.key === k;
       el.classList.toggle("cdot-done", primary[k] !== undefined && primary[k] < state.pos);
-      el.classList.toggle("cdot-now", !!(cur && cur.key === k && !cur.soft));
-      el.classList.toggle("cdot-soft", !!(cur && cur.key === k && cur.soft));
+      // if this bead is the current step, show "now" regardless of soft flag
+      el.classList.toggle("cdot-now", isCurrent);
+      // soft glow only for non-current steps of soft-beads
+      el.classList.toggle("cdot-soft", !isCurrent && cur && cur.soft && cur.key === k);
     });
     const cn = $("#compactNow");
     if (cn) {
