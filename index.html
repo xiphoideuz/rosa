@@ -12,10 +12,14 @@
   html:not(.dark) { color-scheme: light; }
   body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
   .pray-p { margin-bottom: .9rem; line-height: 1.9; }
-  .bead { fill: #1e293b; stroke: #f59e0b; stroke-width: 1.4; transition: all .25s; }
-  html:not(.dark) .bead { fill: #e2e8f0; }
-  .bead-done { fill: #b45309 !important; stroke: #fbbf24; opacity: .85; }
-  .bead-now { fill: #f59e0b !important; stroke: #fff7ed; stroke-width: 2.4; filter: drop-shadow(0 0 8px #f59e0b); animation: pulse 1.6s infinite; }
+  .bead { transition: all .25s; }
+  .bead-small { fill: #b45309; stroke: #fde68a; stroke-width: 1.2; }
+  html:not(.dark) .bead-small { fill: #d97706; stroke: #92400e; }
+  .bead-big { fill: #0369a1; stroke: #bae6fd; stroke-width: 1.6; }
+  html:not(.dark) .bead-big { fill: #0284c7; stroke: #0c4a6e; }
+  .bead-done { opacity: .45; filter: saturate(.6); }
+  .bead-now { stroke: #fff7ed; stroke-width: 2.6; filter: drop-shadow(0 0 9px #f59e0b); animation: pulse 1.6s infinite; }
+  .bead-soft { stroke: #fff7ed; stroke-width: 2; stroke-dasharray: 3 2; filter: drop-shadow(0 0 6px #38bdf8); }
   @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 4px #f59e0b);} 50% { filter: drop-shadow(0 0 12px #fbbf24);} }
   .bead-center { fill: #0ea5e9; stroke: #e0f2fe; stroke-width: 1.4; }
   .bead-cross { fill: #f59e0b; }
@@ -121,32 +125,43 @@
   </div>
 </nav>
 
-<!-- Setup modal -->
+<!-- Welcome -->
 <div id="setupModal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
-  <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
-    <h2 class="font-bold text-lg">Mulai Doa Rosario</h2>
-    <p class="text-xs text-slate-400 mb-3">Cocok untuk doa sendiri maupun share-screen kelompok via Zoom / Google Meet.</p>
-
-    <label class="text-xs font-semibold text-slate-300">Mode</label>
-    <div class="grid grid-cols-2 gap-2 mt-1 mb-3">
-      <label class="rounded-xl border border-slate-700 p-3 text-sm cursor-pointer has-checked:border-amber-400 has-checked:bg-amber-500/10">
-        <input type="radio" name="mode" value="single" class="mr-1" /> Sendiri
-      </label>
-      <label class="rounded-xl border border-slate-700 p-3 text-sm cursor-pointer has-checked:border-amber-400 has-checked:bg-amber-500/10">
-        <input type="radio" name="mode" value="group" class="mr-1" /> Kelompok
-      </label>
+  <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:p-6 max-h-[90vh] overflow-y-auto text-center">
+    <div class="text-4xl">📿</div>
+    <h2 class="font-bold text-2xl mt-1">Rosario</h2>
+    <p class="text-xs text-slate-400">Doa Rosario Bahasa Indonesia — sendiri atau kelompok</p>
+    <p class="text-sm text-slate-300 mt-3">Hari ini: <span id="todayLine" class="font-semibold text-slate-100"></span></p>
+    <div class="mt-1 flex items-center justify-center gap-2 flex-wrap">
+      <span class="text-sm">Peristiwa: <span id="welcomeMystery" class="font-bold text-amber-300"></span></span>
+      <button id="btnChangeMystery" class="text-[11px] px-2 py-1 rounded-lg border border-slate-600 text-slate-300">Ganti Peristiwa</button>
+    </div>
+    <div id="mysteryPickRow" class="mt-2" style="display:none">
+      <select id="mysteryChoice" class="w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400 text-left">
+        <option value="gembira">Peristiwa Gembira</option>
+        <option value="sedih">Peristiwa Sedih</option>
+        <option value="mulia">Peristiwa Mulia</option>
+        <option value="terang">Peristiwa Terang</option>
+      </select>
     </div>
 
-    <label class="text-xs font-semibold text-slate-300">Peristiwa</label>
-    <select id="mysteryChoice" class="mt-1 mb-3 w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400">
-      <option value="gembira">Peristiwa Gembira</option>
-      <option value="sedih">Peristiwa Sedih</option>
-      <option value="mulia">Peristiwa Mulia</option>
-      <option value="terang">Peristiwa Terang</option>
-    </select>
+    <div id="resumeBox" class="mt-3 rounded-xl border border-sky-500/50 bg-sky-500/10 p-3" style="display:none">
+      <p class="text-sm font-semibold text-sky-200">Lanjutkan doa Rosario yang terputus?</p>
+      <p id="resumeDetail" class="text-xs text-slate-300 mt-0.5"></p>
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <button id="btnResume" class="py-2 rounded-xl bg-sky-500 text-slate-950 text-sm font-bold">Ya, Lanjutkan</button>
+        <button id="btnFresh" class="py-2 rounded-xl border border-slate-600 text-sm">Mulai Baru</button>
+      </div>
+    </div>
 
-    <div id="groupOpts">
-      <div class="grid grid-cols-2 gap-2 mb-2">
+    <div class="grid gap-2 mt-4">
+      <button id="btnStartSingle" class="w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-bold">Mulai Rosario Pribadi</button>
+      <button id="btnStartGroup" class="w-full py-3 rounded-xl border border-amber-400/70 text-amber-200 font-bold">Mulai Rosario Kelompok</button>
+      <p class="text-[11px] text-slate-400 -mt-1">Gunakan mode Rosario Kelompok untuk membagi giliran doa pada lebih dari 1 orang.</p>
+    </div>
+
+    <div id="groupOpts" style="display:none" class="text-left">
+      <div class="grid grid-cols-2 gap-2 mb-2 mt-2">
         <div>
           <label class="text-xs font-semibold text-slate-300">Jumlah umat (2–50)</label>
           <input id="userCount" type="number" min="2" max="50" value="4" class="mt-1 w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400" />
@@ -161,10 +176,10 @@
         <button id="resetNames" class="text-[11px] underline text-slate-400">Reset jadi Umat 1..N</button>
       </div>
       <div id="nameList" class="mt-1 space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+      <button id="setupClose" class="mt-3 w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">Mulai Berdoa Kelompok →</button>
     </div>
 
-    <button id="setupClose" class="mt-4 w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">Mulai Berdoa →</button>
-    <p class="text-[11px] text-slate-500 mt-2 text-center">Keyboard: Spasi/Enter = Lanjut · ←/Backspace = Kembali · F11/⛶ untuk fullscreen saat share.</p>
+    <p class="text-[11px] text-slate-500 mt-3">Keyboard: Spasi/Enter = Lanjut · ←/Backspace = Kembali · ⛶ untuk fullscreen saat share di Zoom / Google Meet.</p>
   </div>
 </div>
 

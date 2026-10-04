@@ -88,6 +88,7 @@
     font: 1,
     dark: true
   };
+  let savedPos = 0, hashPos = null;
   try {
     const raw = localStorage.getItem(LS);
     if (raw) {
@@ -98,15 +99,17 @@
       if (s && typeof s.leader === "string" && s.leader.trim()) state.leader = s.leader;
       if (s && typeof s.font === "number") state.font = Math.min(1.35, Math.max(0.85, s.font));
       if (s && typeof s.dark === "boolean") state.dark = s.dark;
+      if (s && typeof s.pos === "number") savedPos = s.pos;
     }
-    const h = parseInt((location.hash.match(/s=(\d+)/) || [])[1], 10);
-    if (!Number.isNaN(h)) state.pos = h;
+    const hm = location.hash.match(/s=(\d+)/);
+    if (hm) hashPos = parseInt(hm[1], 10);
+    if (hashPos !== null && !Number.isNaN(hashPos)) { state.pos = hashPos; savedPos = hashPos; }
   } catch (e) { /* ignore */ }
 
   let steps = buildSteps(state.mystery);
   function save() {
     try {
-      localStorage.setItem(LS, JSON.stringify({ mystery: state.mystery, mode: state.mode, users: state.users, leader: state.leader, font: state.font, dark: state.dark }));
+      localStorage.setItem(LS, JSON.stringify({ mystery: state.mystery, mode: state.mode, users: state.users, leader: state.leader, font: state.font, dark: state.dark, pos: state.pos }));
     } catch (e) {}
   }
   function clampPos() {
@@ -119,11 +122,17 @@
   // Layout: ellipse loop (5 decades) + pendant tail.
   // beadMap: stepIndex -> bead element id
   let beadStep = []; // beadIdx -> stepIndex (first step that lights it)
-  function loopPoints(cx, cy, rx, ry, n, rot) {
+  // Teardrop loop: round top, tapered at the bottom junction (a = PI).
+  // Extra arc before each big bead creates visible decade gaps.
+  function loopPoints(cx, cy, rx, ry, n, gap) {
+    const total = n + 5 * gap;
     const pts = [];
     for (let i = 0; i < n; i++) {
-      const a = rot + (i / n) * Math.PI * 2;
-      pts.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+      const u = (i + Math.floor(i / 11) * gap) / total;
+      const a = Math.PI + u * Math.PI * 2; // start at junction, clockwise
+      const p = (1 - Math.cos(a - Math.PI)) / 2; // 0 at junction -> 1 at top
+      const w = 1 - 0.72 * Math.pow(1 - p, 1.6);
+      pts.push([cx + rx * Math.sin(a) * w, cy - ry * Math.cos(a)]);
     }
     return pts;
   }
@@ -132,15 +141,13 @@
     const NS = "http://www.w3.org/2000/svg";
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     beadStep = [];
-    const W = 360, H = 430;
+    const W = 360, H = 480;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    const cx = 180, cy = 165, rx = 128, ry = 118;
-    // pendant from bottom of loop down
-    const pendantX = cx, pendantTopY = cy + ry; // ~283
-    // 53 loop beads: 5 x (1 big + 10 small), starting at top after centerpiece
-    const N_LOOP = 53; // 5 Our Father + 48? Actually 5+50=55; use 55 for exactness
-    const N = 55;
-    const pts = loopPoints(cx, cy, rx, ry, N, -Math.PI / 2);
+    const cx = 180, cy = 148, rx = 126, ry = 112;
+    // junction (centerpiece) at bottom of the teardrop; pendant hangs below it
+    const pendantX = cx, pendantTopY = cy + ry; // ~260
+    const N = 55; // 5 x (1 Bapa Kami + 10 Salam Maria)
+    const pts = loopPoints(cx, cy, rx, ry, N, 0.9);
     // draw loop string
     const path = document.createElementNS(NS, "path");
     path.setAttribute("d", `M ${pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L ")} Z`);
@@ -151,8 +158,8 @@
     svg.appendChild(path);
     // pendant string
     const line = document.createElementNS(NS, "line");
-    line.setAttribute("x1", pendantX); line.setAttribute("y1", pendantTopY);
-    line.setAttribute("x2", pendantX); line.setAttribute("y2", pendantTopY + 110);
+    line.setAttribute("x1", pendantX); line.setAttribute("y1", pendantTopY + 14);
+    line.setAttribute("x2", pendantX); line.setAttribute("y2", pendantTopY + 128);
     line.setAttribute("stroke", "currentColor"); line.setAttribute("stroke-opacity", "0.25");
     line.setAttribute("stroke-width", "2");
     svg.appendChild(line);
@@ -165,37 +172,53 @@
     const loopBeads = [];
     for (let i = 0; i < N; i++) {
       const isBig = i % 11 === 0;
+      const dec = Math.floor(i / 11) + 1;
+      const sub = i % 11;
       const c = document.createElementNS(NS, "circle");
-      c.setAttribute("cx", pts[i][0]); c.setAttribute("cy", pts[i][1]);
-      c.setAttribute("r", isBig ? 9 : 6.5);
-      c.setAttribute("class", "bead");
+      c.setAttribute("cx", pts[i][0].toFixed(1)); c.setAttribute("cy", pts[i][1].toFixed(1));
+      c.setAttribute("r", isBig ? 10 : 6.2);
+      c.setAttribute("class", isBig ? "bead bead-big" : "bead bead-small");
       c.dataset.bead = "L" + i;
       c.style.cursor = "pointer";
       const title = document.createElementNS(NS, "title");
-      title.textContent = isBig ? "Bapa Kami" : "Salam Maria";
+      title.textContent = isBig
+        ? `Peristiwa ${dec}/5 — Bapa Kami`
+        : `Peristiwa ${dec}/5 — Salam Maria ${sub}/10`;
       c.appendChild(title);
       beadsG.appendChild(c);
       loopBeads.push(c);
     }
-    // centerpiece at junction
-    const center = document.createElementNS(NS, "rect");
-    center.setAttribute("x", pendantX - 8); center.setAttribute("y", pendantTopY - 8);
-    center.setAttribute("width", 16); center.setAttribute("height", 16);
-    center.setAttribute("rx", 4);
+    // centerpiece medallion at the junction
+    const center = document.createElementNS(NS, "ellipse");
+    center.setAttribute("cx", pendantX); center.setAttribute("cy", pendantTopY);
+    center.setAttribute("rx", 13); center.setAttribute("ry", 16);
     center.setAttribute("class", "bead-center");
     center.style.cursor = "pointer";
     center.dataset.bead = "C";
+    const mLabel = document.createElementNS(NS, "text");
+    mLabel.setAttribute("x", pendantX); mLabel.setAttribute("y", pendantTopY + 5);
+    mLabel.setAttribute("text-anchor", "middle");
+    mLabel.setAttribute("font-size", "14");
+    mLabel.setAttribute("font-weight", "bold");
+    mLabel.setAttribute("fill", "#fff");
+    mLabel.setAttribute("pointer-events", "none");
+    mLabel.textContent = "M";
+    const mTitle = document.createElementNS(NS, "title");
+    mTitle.textContent = "Bunda Maria";
+    center.appendChild(mTitle);
     beadsG.appendChild(center);
-    // pendant beads: from junction downward: 1 big (Bapa awal) + 3 small + 1 big (Kemuliaan) + cross
-    const py = [pendantTopY + 22, pendantTopY + 44, pendantTopY + 62, pendantTopY + 80, pendantTopY + 98];
-    const pr = [9, 6.5, 6.5, 6.5, 9];
+    beadsG.appendChild(mLabel);
+    // pendant beads below the medallion: 1 big (Bapa awal) + 3 small + 1 big + crucifix
+    const py = [pendantTopY + 34, pendantTopY + 56, pendantTopY + 74, pendantTopY + 92, pendantTopY + 114];
+    const pr = [10, 6.2, 6.2, 6.2, 10];
+    const pcls = ["bead bead-big", "bead bead-small", "bead bead-small", "bead bead-small", "bead bead-big"];
     const plabel = ["Bapa Kami", "Salam Maria 1/3", "Salam Maria 2/3", "Salam Maria 3/3", "Kemuliaan"];
     const pendBeads = [];
     py.forEach((y, i) => {
       const c = document.createElementNS(NS, "circle");
       c.setAttribute("cx", pendantX); c.setAttribute("cy", y);
       c.setAttribute("r", pr[i]);
-      c.setAttribute("class", "bead");
+      c.setAttribute("class", pcls[i]);
       c.dataset.bead = "P" + i;
       c.style.cursor = "pointer";
       const t = document.createElementNS(NS, "title");
@@ -204,23 +227,24 @@
       beadsG.appendChild(c);
       pendBeads.push(c);
     });
-    // cross
-    const cross = document.createElementNS(NS, "text");
-    cross.setAttribute("x", pendantX); cross.setAttribute("y", pendantTopY + 140);
-    cross.setAttribute("text-anchor", "middle");
-    cross.setAttribute("font-size", "26");
-    cross.setAttribute("class", "bead-cross");
+    // crucifix drawn with rects (no more text glyph)
+    const cross = document.createElementNS(NS, "g");
     cross.style.cursor = "pointer";
     cross.dataset.bead = "X";
-    cross.textContent = "✝";
+    const cv = document.createElementNS(NS, "rect");
+    cv.setAttribute("x", pendantX - 5); cv.setAttribute("y", pendantTopY + 128);
+    cv.setAttribute("width", 10); cv.setAttribute("height", 48); cv.setAttribute("rx", 2);
+    const ch = document.createElementNS(NS, "rect");
+    ch.setAttribute("x", pendantX - 15); ch.setAttribute("y", pendantTopY + 138);
+    ch.setAttribute("width", 30); ch.setAttribute("height", 9); ch.setAttribute("rx", 2);
+    [cv, ch].forEach((r) => { r.setAttribute("fill", "#f59e0b"); r.setAttribute("stroke", "#92400e"); r.setAttribute("stroke-width", "1.5"); cross.appendChild(r); });
     const ct = document.createElementNS(NS, "title");
     ct.textContent = "Tanda Salib / Aku Percaya";
     cross.appendChild(ct);
     beadsG.appendChild(cross);
 
-    // Build mapping step -> bead element for click + highlight
-    // Pendant steps 0..8 map: pembuka->X? tanda->X, percaya->X, bapa->P0, salam3->P1..P3, kemuliaan/terpujilah->P4
-    // Loop: for decade d, umum->gap(big bead L(d*11)), bapa->L(d*11), salam j->L(d*11+1+j), kemuliaan/terpujilah/fatima->approach next big
+    // Strict bead mapping: only real prayer beads light up hard (bead-now);
+    // announcements and closing prayers glow softly (bead-soft) on the nearest bead.
     const all = { X: cross, C: center };
     loopBeads.forEach((el, i) => (all["L" + i] = el));
     pendBeads.forEach((el, i) => (all["P" + i] = el));
@@ -236,56 +260,57 @@
     paintBeads();
   }
 
-  function beadKeyForStep(stepIdx) {
+  // Only real prayer beads map hard; announcements/closings map soft to the nearest bead.
+  function beadForStep(stepIdx) {
     const s = steps[stepIdx];
     if (!s) return null;
-    if (s.kind === "pembuka" || s.kind === "tanda" || s.kind === "percaya") {
-      if (s.title.indexOf("Penutup") >= 0) return "X";
-      // opening tanda/percaya -> X as well
-      if (s.kind !== "pembuka") return "X";
-      return "X";
-    }
-    if (s.kind === "bapa" && s.kicker === "Doa awal") return "P0";
+    if (s.kind === "pembuka") return null;
+    if (s.kind === "tanda" || s.kind === "percaya") return { key: "X", soft: false };
+    if (s.kind === "bapa" && s.kicker === "Doa awal") return { key: "P0", soft: false };
     if (s.kind === "salam3") {
       const m = s.sub.match(/\((\d)\/3\)/);
-      return "P" + (m ? parseInt(m[1], 10) : 1);
+      return { key: "P" + (m ? parseInt(m[1], 10) : 1), soft: false };
     }
-    if ((s.kind === "kemuliaan" || s.kind === "terpujilah") && s.kicker === "Doa awal") return "P4";
+    if (s.kind === "kemuliaan" && s.kicker === "Doa awal") return { key: "P4", soft: false };
+    if (s.kind === "terpujilah" && s.kicker === "Doa awal") return { key: "P4", soft: true };
     // decades
     const mk = (s.sub || "").match(/(\d)\/5/);
     const d = mk ? parseInt(mk[1], 10) - 1 : 0;
     const base = d * 11;
-    if (s.kind === "umum") return "L" + base; // announce at the big bead
-    if (s.kind === "bapa") return "L" + base;
+    if (s.kind === "umum") return { key: "L" + base, soft: true };
+    if (s.kind === "bapa") return { key: "L" + base, soft: false };
     if (s.kind === "salam") {
       const jm = (s.sub || "").match(/butir (\d+)\/10/);
       const j = jm ? parseInt(jm[1], 10) : 1;
-      return "L" + (base + j);
+      return { key: "L" + (base + j), soft: false };
     }
-    if (s.kind === "kemuliaan" || s.kind === "terpujilah" || s.kind === "fatima") return "L" + ((base + 11) % 55);
-    if (s.kind === "ratu" || s.kind === "doakanlah" || s.kind === "marilah") return "C";
-    return "X";
+    if (s.kind === "kemuliaan" || s.kind === "terpujilah" || s.kind === "fatima") return { key: "L" + (base + 10), soft: true };
+    if (s.kind === "ratu" || s.kind === "doakanlah" || s.kind === "marilah") return { key: "C", soft: true };
+    return { key: "X", soft: true };
   }
 
   function paintBeads() {
     const all = window.__beads || {};
-    // reset classes; assign step to each bead (first step using it)
+    // reset classes; assign click target = first hard step using each bead
     Object.values(all).forEach((el) => {
-      el.classList.remove("bead-done", "bead-now");
+      el.classList.remove("bead-done", "bead-now", "bead-soft");
       el.dataset.step = "";
     });
+    const primary = {};
     steps.forEach((s, i) => {
-      const k = beadKeyForStep(i);
-      const el = all[k];
-      if (el && el.dataset.step === "") el.dataset.step = String(i);
+      const b = beadForStep(i);
+      if (b && !b.soft && primary[b.key] === undefined) primary[b.key] = i;
     });
-    steps.forEach((s, i) => {
-      const k = beadKeyForStep(i);
-      const el = all[k];
-      if (!el) return;
-      if (i < state.pos) el.classList.add("bead-done");
-      if (i === state.pos) el.classList.add("bead-now");
+    Object.keys(primary).forEach((k) => { if (all[k]) all[k].dataset.step = String(primary[k]); });
+    if (all.C && all.C.dataset.step === "") {
+      const f = steps.findIndex((s, i) => { const b = beadForStep(i); return b && b.key === "C"; });
+      if (f >= 0) all.C.dataset.step = String(f);
+    }
+    Object.keys(all).forEach((k) => {
+      if (primary[k] !== undefined && primary[k] < state.pos) all[k].classList.add("bead-done");
     });
+    const cur = beadForStep(state.pos);
+    if (cur && all[cur.key]) all[cur.key].classList.add(cur.soft ? "bead-soft" : "bead-now");
     // update mini dots strip
     const strip = $("#beadStrip");
     if (strip) {
@@ -376,20 +401,25 @@
   function next() { goTo(state.pos + 1); }
   function back() { goTo(state.pos - 1); }
 
-  /* ---------- Setup modal ---------- */
-  function openSetup() {
+  /* ---------- Welcome modal ---------- */
+  let resumePos = null;
+  function openSetup(showResume) {
     $("#setupModal").classList.remove("hidden");
+    if (showResume === false) $("#resumeBox").style.display = "none";
     syncSetupUI();
   }
   function closeSetup() { $("#setupModal").classList.add("hidden"); }
   function syncSetupUI() {
-    document.querySelectorAll('input[name="mode"]').forEach((r) => (r.checked = r.value === state.mode));
     const mc = $("#mysteryChoice");
     mc.value = state.mystery;
+    $("#mysterySelect").value = state.mystery;
+    $("#welcomeMystery").textContent = MYSTERIES[state.mystery].nama;
+    try {
+      $("#todayLine").textContent = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(today);
+    } catch (e) { $("#todayLine").textContent = today.toDateString(); }
     $("#userCount").value = state.users.length;
     $("#leaderInput").value = state.leader || "";
     renderNameInputs();
-    $("#groupOpts").style.display = state.mode === "group" ? "" : "none";
   }
   function renderNameInputs() {
     const wrap = $("#nameList");
@@ -413,19 +443,34 @@
   function wire() {
     $("#btnNext").addEventListener("click", next);
     $("#btnBack").addEventListener("click", back);
-    $("#btnSetup").addEventListener("click", openSetup);
-    $("#btnSetup2").addEventListener("click", openSetup);
-    $("#setupClose").addEventListener("click", () => { closeSetup(); render(); });
-    $("#mysteryChoice").addEventListener("change", (e) => {
-      state.mystery = e.target.value; steps = buildSteps(state.mystery); state.pos = 0; render(); syncSetupUI();
+    $("#btnSetup").addEventListener("click", () => openSetup(false));
+    $("#btnSetup2").addEventListener("click", () => openSetup(false));
+    $("#btnChangeMystery").addEventListener("click", () => {
+      const row = $("#mysteryPickRow");
+      row.style.display = row.style.display === "none" ? "" : "none";
     });
-    document.querySelectorAll('input[name="mode"]').forEach((r) =>
-      r.addEventListener("change", () => {
-        state.mode = document.querySelector('input[name="mode"]:checked').value;
-        $("#groupOpts").style.display = state.mode === "group" ? "" : "none";
-        render();
-      })
-    );
+    $("#btnStartSingle").addEventListener("click", () => {
+      state.mode = "single"; steps = buildSteps(state.mystery); closeSetup(); goTo(0);
+    });
+    $("#btnStartGroup").addEventListener("click", () => {
+      state.mode = "group";
+      const go = $("#groupOpts");
+      const show = go.style.display === "none";
+      go.style.display = show ? "" : "none";
+      if (show) { renderNameInputs(); $("#userCount").focus(); }
+      render();
+    });
+    $("#setupClose").addEventListener("click", () => {
+      state.mode = "group"; steps = buildSteps(state.mystery); closeSetup(); goTo(0);
+    });
+    $("#btnResume").addEventListener("click", () => { closeSetup(); goTo(resumePos === null ? 0 : resumePos); });
+    $("#btnFresh").addEventListener("click", () => { $("#resumeBox").style.display = "none"; resumePos = null; state.pos = 0; render(); });
+    $("#mysteryChoice").addEventListener("change", (e) => {
+      state.mystery = e.target.value; steps = buildSteps(state.mystery); state.pos = 0;
+      resumePos = null; $("#resumeBox").style.display = "none";
+      render(); syncSetupUI();
+    });
+
     $("#userCount").addEventListener("change", (e) => {
       let n = Math.max(2, Math.min(50, parseInt(e.target.value, 10) || 4));
       const cur = state.users.slice();
@@ -451,6 +496,7 @@
     $("#btnDark").addEventListener("click", () => { state.dark = !state.dark; applyTheme(); save(); });
     $("#btnRestart").addEventListener("click", () => goTo(0));
     document.addEventListener("keydown", (e) => {
+      if (!$("#setupModal").classList.contains("hidden")) return;
       if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) return;
       if (e.code === "Space" || e.key === "Enter" || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); next(); }
       else if (e.key === "ArrowLeft" || e.key === "Backspace" || e.key === "PageUp") { e.preventDefault(); back(); }
@@ -476,12 +522,20 @@
     document.body.dataset.theme = state.dark ? "dark" : "light";
   }
 
-  // init
+  // init: welcome every visit; offer resume only for an unfinished prayer
+  if (hashPos === null || Number.isNaN(hashPos)) {
+    if (savedPos > 0 && savedPos < steps.length - 1) { resumePos = savedPos; state.pos = savedPos; }
+    else state.pos = 0;
+  }
   applyTheme();
   renderRosary();
   wire();
-  render();
-  // sync header select
   $("#mysterySelect").value = state.mystery;
-  if (!localStorage.getItem(LS)) openSetup();
+  if (resumePos !== null) {
+    const st = steps[resumePos];
+    $("#resumeDetail").textContent = `${MYSTERIES[state.mystery].nama} · langkah ${resumePos + 1}/${steps.length} · ${st.title}${st.sub ? " — " + st.sub : ""}`;
+    $("#resumeBox").style.display = "";
+  }
+  render();
+  openSetup(resumePos !== null);
 })();
