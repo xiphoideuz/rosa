@@ -131,7 +131,7 @@
       const u = (i + Math.floor(i / 11) * gap) / total;
       const a = Math.PI + u * Math.PI * 2; // start at junction, clockwise
       const p = (1 - Math.cos(a - Math.PI)) / 2; // 0 at junction -> 1 at top
-      const w = 1 - 0.72 * Math.pow(1 - p, 1.6);
+      const w = 1 - 0.5 * Math.pow(1 - p, 1.6);
       pts.push([cx + rx * Math.sin(a) * w, cy - ry * Math.cos(a)]);
     }
     return pts;
@@ -143,9 +143,10 @@
     beadStep = [];
     const W = 360, H = 480;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    const cx = 180, cy = 148, rx = 126, ry = 112;
+    const cx = 180, cy = 140, rx = 126, ry = 104;
     // junction (centerpiece) at bottom of the teardrop; pendant hangs below it
-    const pendantX = cx, pendantTopY = cy + ry; // ~260
+    const pendantX = cx, pendantTopY = cy + ry; // ~244
+    const crossTop = pendantTopY + 166; // crucifix top (~410)
     const N = 55; // 5 x (1 Bapa Kami + 10 Salam Maria)
     const pts = loopPoints(cx, cy, rx, ry, N, 0.9);
     // draw loop string
@@ -158,8 +159,8 @@
     svg.appendChild(path);
     // pendant string
     const line = document.createElementNS(NS, "line");
-    line.setAttribute("x1", pendantX); line.setAttribute("y1", pendantTopY + 14);
-    line.setAttribute("x2", pendantX); line.setAttribute("y2", pendantTopY + 128);
+    line.setAttribute("x1", pendantX); line.setAttribute("y1", pendantTopY + 29);
+    line.setAttribute("x2", pendantX); line.setAttribute("y2", crossTop);
     line.setAttribute("stroke", "currentColor"); line.setAttribute("stroke-opacity", "0.25");
     line.setAttribute("stroke-width", "2");
     svg.appendChild(line);
@@ -188,56 +189,95 @@
       beadsG.appendChild(c);
       loopBeads.push(c);
     }
-    // centerpiece medallion at the junction
-    const center = document.createElementNS(NS, "ellipse");
-    center.setAttribute("cx", pendantX); center.setAttribute("cy", pendantTopY);
-    center.setAttribute("rx", 13); center.setAttribute("ry", 16);
-    center.setAttribute("class", "bead-center");
+    // centerpiece: Miraculous Medal image in an oval frame (fallback disc behind it)
+    const defs = document.createElementNS(NS, "defs");
+    const clip = document.createElementNS(NS, "clipPath");
+    clip.setAttribute("id", "medalClip");
+    const clipE = document.createElementNS(NS, "ellipse");
+    clipE.setAttribute("cx", pendantX); clipE.setAttribute("cy", pendantTopY);
+    clipE.setAttribute("rx", 18); clipE.setAttribute("ry", 30);
+    clip.appendChild(clipE);
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+    const center = document.createElementNS(NS, "g");
     center.style.cursor = "pointer";
     center.dataset.bead = "C";
-    const mLabel = document.createElementNS(NS, "text");
-    mLabel.setAttribute("x", pendantX); mLabel.setAttribute("y", pendantTopY + 5);
-    mLabel.setAttribute("text-anchor", "middle");
-    mLabel.setAttribute("font-size", "14");
-    mLabel.setAttribute("font-weight", "bold");
-    mLabel.setAttribute("fill", "#fff");
-    mLabel.setAttribute("pointer-events", "none");
-    mLabel.textContent = "M";
+    const medalBg = document.createElementNS(NS, "ellipse");
+    medalBg.setAttribute("cx", pendantX); medalBg.setAttribute("cy", pendantTopY);
+    medalBg.setAttribute("rx", 18); medalBg.setAttribute("ry", 30);
+    medalBg.setAttribute("class", "bead-center");
+    center.appendChild(medalBg);
+    const medalImg = document.createElementNS(NS, "image");
+    medalImg.setAttribute("href", "./medal.jpg");
+    medalImg.setAttribute("x", pendantX - 20); medalImg.setAttribute("y", pendantTopY - 33);
+    medalImg.setAttribute("width", 40); medalImg.setAttribute("height", 66);
+    medalImg.setAttribute("clip-path", "url(#medalClip)");
+    medalImg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    center.appendChild(medalImg);
+    const medalFrame = document.createElementNS(NS, "ellipse");
+    medalFrame.setAttribute("cx", pendantX); medalFrame.setAttribute("cy", pendantTopY);
+    medalFrame.setAttribute("rx", 18); medalFrame.setAttribute("ry", 30);
+    medalFrame.setAttribute("fill", "none");
+    medalFrame.setAttribute("stroke", "#f59e0b");
+    medalFrame.setAttribute("stroke-width", "2.5");
+    center.appendChild(medalFrame);
     const mTitle = document.createElementNS(NS, "title");
-    mTitle.textContent = "Bunda Maria";
+    mTitle.textContent = "Bunda Maria — Maria Dikandung Tanpa Noda";
     center.appendChild(mTitle);
     beadsG.appendChild(center);
-    beadsG.appendChild(mLabel);
-    // pendant beads below the medallion: 1 big (Bapa awal) + 3 small + 1 big + crucifix
-    const py = [pendantTopY + 34, pendantTopY + 56, pendantTopY + 74, pendantTopY + 92, pendantTopY + 114];
-    const pr = [10, 6.2, 6.2, 6.2, 10];
-    const pcls = ["bead bead-big", "bead bead-small", "bead bead-small", "bead bead-small", "bead bead-big"];
-    const plabel = ["Bapa Kami", "Salam Maria 1/3", "Salam Maria 2/3", "Salam Maria 3/3", "Kemuliaan"];
+    // pendant beads, traditional order from the cross upward:
+    // P0 Bapa Kami, P1-P3 Salam Maria, P4 Kemuliaan, then the medal.
+    // Centers computed from radii so every gap is an even 10px.
+    const order = [
+      { key: "P4", r: 10, cls: "bead bead-big", label: "Kemuliaan" },
+      { key: "P3", r: 6.2, cls: "bead bead-small", label: "Salam Maria 3/3" },
+      { key: "P2", r: 6.2, cls: "bead bead-small", label: "Salam Maria 2/3" },
+      { key: "P1", r: 6.2, cls: "bead bead-small", label: "Salam Maria 1/3" },
+      { key: "P0", r: 10, cls: "bead bead-big", label: "Bapa Kami" }
+    ];
     const pendBeads = [];
-    py.forEach((y, i) => {
-      const c = document.createElementNS(NS, "circle");
-      c.setAttribute("cx", pendantX); c.setAttribute("cy", y);
-      c.setAttribute("r", pr[i]);
-      c.setAttribute("class", pcls[i]);
-      c.dataset.bead = "P" + i;
-      c.style.cursor = "pointer";
-      const t = document.createElementNS(NS, "title");
-      t.textContent = plabel[i];
-      c.appendChild(t);
-      beadsG.appendChild(c);
-      pendBeads.push(c);
-    });
-    // crucifix drawn with rects (no more text glyph)
+    {
+      let yy = pendantTopY + 30 + 10; // below medal (ry 30) + even gap
+      order.forEach((b) => {
+        yy += b.r;
+        const c = document.createElementNS(NS, "circle");
+        c.setAttribute("cx", pendantX); c.setAttribute("cy", yy.toFixed(1));
+        c.setAttribute("r", b.r);
+        c.setAttribute("class", b.cls);
+        c.dataset.bead = b.key;
+        c.style.cursor = "pointer";
+        const t = document.createElementNS(NS, "title");
+        t.textContent = b.label;
+        c.appendChild(t);
+        beadsG.appendChild(c);
+        pendBeads.push(c);
+        yy += b.r + 10;
+      });
+    }
+    // crucifix with corpus, drawn with rects + circle
     const cross = document.createElementNS(NS, "g");
     cross.style.cursor = "pointer";
     cross.dataset.bead = "X";
     const cv = document.createElementNS(NS, "rect");
-    cv.setAttribute("x", pendantX - 5); cv.setAttribute("y", pendantTopY + 128);
+    cv.setAttribute("x", pendantX - 5); cv.setAttribute("y", crossTop);
     cv.setAttribute("width", 10); cv.setAttribute("height", 48); cv.setAttribute("rx", 2);
     const ch = document.createElementNS(NS, "rect");
-    ch.setAttribute("x", pendantX - 15); ch.setAttribute("y", pendantTopY + 138);
+    ch.setAttribute("x", pendantX - 15); ch.setAttribute("y", crossTop + 10);
     ch.setAttribute("width", 30); ch.setAttribute("height", 9); ch.setAttribute("rx", 2);
     [cv, ch].forEach((r) => { r.setAttribute("fill", "#f59e0b"); r.setAttribute("stroke", "#92400e"); r.setAttribute("stroke-width", "1.5"); cross.appendChild(r); });
+    const flesh = "#7c2d12"; // corpus silhouette
+    const head = document.createElementNS(NS, "circle");
+    head.setAttribute("cx", pendantX); head.setAttribute("cy", crossTop + 7);
+    head.setAttribute("r", 3.5); head.setAttribute("fill", flesh);
+    const arms = document.createElementNS(NS, "rect");
+    arms.setAttribute("x", pendantX - 9); arms.setAttribute("y", crossTop + 12);
+    arms.setAttribute("width", 18); arms.setAttribute("height", 3.5); arms.setAttribute("rx", 1.5);
+    arms.setAttribute("fill", flesh);
+    const body = document.createElementNS(NS, "rect");
+    body.setAttribute("x", pendantX - 2.5); body.setAttribute("y", crossTop + 12);
+    body.setAttribute("width", 5); body.setAttribute("height", 22); body.setAttribute("rx", 2);
+    body.setAttribute("fill", flesh);
+    [head, arms, body].forEach((r) => cross.appendChild(r));
     const ct = document.createElementNS(NS, "title");
     ct.textContent = "Tanda Salib / Aku Percaya";
     cross.appendChild(ct);
@@ -247,7 +287,7 @@
     // announcements and closing prayers glow softly (bead-soft) on the nearest bead.
     const all = { X: cross, C: center };
     loopBeads.forEach((el, i) => (all["L" + i] = el));
-    pendBeads.forEach((el, i) => (all["P" + i] = el));
+    pendBeads.forEach((el) => (all[el.dataset.bead] = el));
     window.__beads = all;
 
     // click handlers
@@ -364,7 +404,7 @@
     body.innerHTML = "";
     (s.text || []).forEach((p) => {
       const el = document.createElement("p");
-      el.className = "pray-p";
+      el.className = "pray-p" + (/^\s*catatan:/i.test(p) ? " italic opacity-80" : "");
       el.textContent = p;
       body.appendChild(el);
     });

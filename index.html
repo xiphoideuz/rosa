@@ -13,12 +13,17 @@
   body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
   .pray-p { margin-bottom: .9rem; line-height: 1.9; }
   .bead { transition: all .25s; }
-  .bead-small { fill: #b45309; stroke: #fde68a; stroke-width: 1.2; }
-  html:not(.dark) .bead-small { fill: #d97706; stroke: #92400e; }
-  .bead-big { fill: #0369a1; stroke: #bae6fd; stroke-width: 1.6; }
-  html:not(.dark) .bead-big { fill: #0284c7; stroke: #0c4a6e; }
-  .bead-done { opacity: .45; filter: saturate(.6); }
-  .bead-now { stroke: #fff7ed; stroke-width: 2.6; filter: drop-shadow(0 0 9px #f59e0b); animation: pulse 1.6s infinite; }
+  /* unprayed beads are hollow; prayed ones fill in */
+  .bead-small { fill: none; stroke: #fbbf24; stroke-width: 1.6; }
+  html:not(.dark) .bead-small { stroke: #b45309; }
+  .bead-big { fill: none; stroke: #7dd3fc; stroke-width: 2; }
+  html:not(.dark) .bead-big { stroke: #0369a1; }
+  .bead-done { opacity: .92; }
+  .bead-small.bead-done { fill: #b45309; }
+  .bead-big.bead-done { fill: #0369a1; }
+  .bead-small.bead-now { fill: #f59e0b; stroke: #fff7ed; }
+  .bead-big.bead-now { fill: #0ea5e9; stroke: #fff7ed; }
+  .bead-now { stroke-width: 2.6; filter: drop-shadow(0 0 9px #f59e0b); animation: pulse 1.6s infinite; }
   .bead-soft { stroke: #fff7ed; stroke-width: 2; stroke-dasharray: 3 2; filter: drop-shadow(0 0 6px #38bdf8); }
   @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 4px #f59e0b);} 50% { filter: drop-shadow(0 0 12px #fbbf24);} }
   .bead-center { fill: #0ea5e9; stroke: #e0f2fe; stroke-width: 1.4; }
