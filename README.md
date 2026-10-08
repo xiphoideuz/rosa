@@ -1,4 +1,13 @@
-# Rosa — Doa Rosario Interaktif (Indonesia)
+# 📿 Rosa — Doa Rosario Interaktif (Indonesia)
+
+<p align="center">
+  <a href="https://xiphoideuz.github.io/rosa"><img src="https://img.shields.io/badge/🌐_Buka_Aplikasi-rosario_online-amber?style=for-the-badge" alt="Buka aplikasi"></a>
+</p>
+
+<p align="center">
+  <a href="https://xiphoideuz.github.io/rosa"><b>👉 https://xiphoideuz.github.io/rosa 👈</b></a><br>
+  <i>Klik untuk langsung berdoa — tanpa install, tanpa daftar.</i>
+</p>
 
 Statis, gratis, cocok untuk doa sendiri maupun share-screen kelompok via Zoom / Google Meet.
 

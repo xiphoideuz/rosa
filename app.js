@@ -577,11 +577,11 @@
       const row = document.createElement("div");
       row.className = "flex items-center gap-2";
       const lab = document.createElement("span");
-      lab.className = "w-8 text-xs text-slate-400";
+      lab.className = "w-8 text-xs text-slate-500 dark:text-slate-400";
       lab.textContent = i + 1;
       const inp = document.createElement("input");
       inp.value = nm;
-      inp.className = "flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm outline-none focus:border-amber-400";
+      inp.className = "flex-1 rounded-lg border border-slate-300 bg-slate-100 px-3 py-1.5 text-sm outline-none focus:border-amber-400 dark:border-slate-700 dark:bg-slate-900";
       inp.placeholder = "Umat " + (i + 1);
       inp.addEventListener("input", () => { state.users[i] = inp.value.trim() || ("Umat " + (i + 1)); });
       row.appendChild(lab); row.appendChild(inp);

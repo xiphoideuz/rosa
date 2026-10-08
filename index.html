@@ -6,6 +6,18 @@
 <title>Rosario — Doa Rosario Interaktif (Indonesia)</title>
 <meta name="description" content="Doa Rosario interaktif Bahasa Indonesia: sendiri atau kelompok (Zoom/Meet). Gratis, responsif, dengan visual rosario dan mode multiuser." />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+  @custom-variant dark (&:where(.dark, .dark *));
+</style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-H3QDXY1YNZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-H3QDXY1YNZ');
+</script>
 <script src="./prayers.js"></script>
 <style>
   :root { color-scheme: dark; }
@@ -48,34 +60,34 @@
   ::-webkit-scrollbar-thumb { background: #475569; border-radius: 8px; }
 </style>
 </head>
-<body class="bg-slate-950 text-slate-100 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col">
 
 <!-- Top progress -->
-<div class="h-1 w-full bg-slate-800"><div id="progressFill" class="h-1 bg-amber-400 transition-all" style="width:0%"></div></div>
+<div class="h-1 w-full bg-slate-300 dark:bg-slate-800"><div id="progressFill" class="h-1 bg-amber-400 transition-all" style="width:0%"></div></div>
 
 <!-- Header -->
-<header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur sticky top-0 z-30">
+<header class="border-b border-slate-200 bg-white/90 backdrop-blur sticky top-0 z-30 dark:border-slate-800 dark:bg-slate-950/90">
   <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 flex items-center gap-2 sm:gap-3 flex-wrap">
     <div class="flex items-center gap-2 mr-auto">
       <span class="text-xl">📿</span>
       <div>
-        <div class="font-bold leading-tight">Rosario <span class="font-normal text-slate-400 text-sm hidden sm:inline">· Doa Rosario Indonesia</span></div>
-        <div id="autoInfo" class="text-[11px] text-slate-400 leading-tight"></div>
+        <div class="font-bold leading-tight">Rosario <span class="font-normal text-slate-500 text-sm hidden sm:inline dark:text-slate-400">· Doa Rosario Indonesia</span></div>
+        <div id="autoInfo" class="text-[11px] text-slate-500 leading-tight dark:text-slate-400"></div>
       </div>
     </div>
-    <span id="modeBadge" class="text-[11px] px-2 py-1 rounded-full bg-slate-800 border border-slate-700">Sendiri</span>
-    <select id="mysterySelect" class="text-xs bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 outline-none focus:border-amber-400" title="Pilih peristiwa">
+    <span id="modeBadge" class="text-[11px] px-2 py-1 rounded-full bg-slate-200 border border-slate-300 dark:bg-slate-800 dark:border-slate-700">Sendiri</span>
+    <select id="mysterySelect" class="text-xs bg-white border border-slate-300 rounded-lg px-2 py-1.5 outline-none focus:border-amber-400 dark:bg-slate-900 dark:border-slate-700" title="Pilih peristiwa">
       <option value="gembira">Gembira (Sen/Sab)</option>
       <option value="sedih">Sedih (Sel/Jum)</option>
       <option value="mulia">Mulia (Rab/Min)</option>
       <option value="terang">Terang (Kam)</option>
     </select>
     <div class="flex items-center gap-1">
-      <button id="fontMinus" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Kecilkan huruf">A−</button>
-      <button id="fontPlus" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Besarkan huruf">A+</button>
-      <button id="btnFull" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Layar penuh (untuk share Zoom/Meet)">⛶</button>
-      <button id="btnDark" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Mode gelap/terang">◐</button>
-      <button id="btnRestart" class="px-2 py-1 rounded-lg border border-slate-700 text-sm" title="Ulangi dari awal">↺</button>
+      <button id="fontMinus" class="px-2 py-1 rounded-lg border border-slate-300 text-sm dark:border-slate-700" title="Kecilkan huruf">A−</button>
+      <button id="fontPlus" class="px-2 py-1 rounded-lg border border-slate-300 text-sm dark:border-slate-700" title="Besarkan huruf">A+</button>
+      <button id="btnFull" class="px-2 py-1 rounded-lg border border-slate-300 text-sm dark:border-slate-700" title="Layar penuh (untuk share Zoom/Meet)">⛶</button>
+      <button id="btnDark" class="px-2 py-1 rounded-lg border border-slate-300 text-sm dark:border-slate-700" title="Mode gelap/terang">◐</button>
+      <button id="btnRestart" class="px-2 py-1 rounded-lg border border-slate-300 text-sm dark:border-slate-700" title="Ulangi dari awal">↺</button>
       <button id="btnSetup" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold" title="Pengaturan mode & nama">⚙ Mode</button>
     </div>
   </div>
@@ -85,42 +97,42 @@
 <main class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-5 py-3 sm:py-5 grid gap-4 lg:grid-cols-[400px_1fr] items-start pb-32">
 
   <!-- Left: rosary -->
-  <section class="lg:sticky lg:top-16 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 sm:p-4">
+  <section class="lg:sticky lg:top-16 rounded-2xl border border-slate-200 bg-white/70 p-3 sm:p-4 dark:border-slate-800 dark:bg-slate-900/60">
     <div class="flex items-center justify-between mb-1">
-      <h2 id="mysteryName" class="font-bold text-amber-300">Peristiwa Gembira</h2>
-      <span id="posLabel" class="text-xs text-slate-400">1 / 88</span>
+      <h2 id="mysteryName" class="font-bold text-amber-600 dark:text-amber-300">Peristiwa Gembira</h2>
+      <span id="posLabel" class="text-xs text-slate-500 dark:text-slate-400">1 / 88</span>
     </div>
     <svg id="rosarySvg" class="w-full mx-auto hidden lg:block" role="img" aria-label="Visual rosario — klik manik untuk pindah"></svg>
     <div id="rosaryCompact" class="lg:hidden" role="img" aria-label="Ringkasan rosario — ketuk titik untuk pindah"></div>
-    <p id="compactNow" class="lg:hidden text-xs text-center text-amber-200/90 mt-1"></p>
+    <p id="compactNow" class="lg:hidden text-xs text-center text-amber-700 mt-1 dark:text-amber-200/90"></p>
     <p class="text-[11px] text-slate-500 mt-1 text-center">Klik manik untuk melompat · emas = posisi saat ini</p>
   </section>
 
   <!-- Right: prayer card -->
-  <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-7 relative min-h-[50vh]">
+  <section class="rounded-2xl border border-slate-200 bg-white/70 p-4 sm:p-7 relative min-h-[50vh] dark:border-slate-800 dark:bg-slate-900/60">
     <div class="flex items-start gap-3">
       <div class="flex-1">
-        <div id="kicker" class="text-[11px] uppercase tracking-widest text-sky-300 font-semibold"></div>
+        <div id="kicker" class="text-[11px] uppercase tracking-widest text-sky-600 font-semibold dark:text-sky-300"></div>
         <h1 id="pTitle" class="text-2xl sm:text-3xl font-bold mt-1"></h1>
-        <div id="pSub" class="text-amber-200/90 mt-1 font-medium"></div>
+        <div id="pSub" class="text-amber-700 mt-1 font-medium dark:text-amber-200/90"></div>
       </div>
       <div class="text-right flex flex-col items-end gap-2">
         <div id="giliran" class="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-sm font-bold shadow" style="display:none">
           Giliran: <span id="giliranName"></span>
           <div id="salamCount" class="text-[11px] font-normal"></div>
         </div>
-        <div id="leaderHint" class="text-[11px] px-2 py-1 rounded-full border border-slate-700 text-slate-300" style="display:none">
+        <div id="leaderHint" class="text-[11px] px-2 py-1 rounded-full border border-slate-300 text-slate-600 dark:border-slate-700 dark:text-slate-300" style="display:none">
           Dipimpin: <span id="leaderName" class="font-semibold"></span>
         </div>
       </div>
     </div>
 
-    <div id="ayatWrap" class="mt-4 rounded-xl border-l-4 border-amber-400 bg-slate-800/70 p-3 sm:p-4">
-      <p id="ayatText" class="italic leading-relaxed text-slate-100"></p>
-      <p id="ayatRef" class="text-xs text-amber-300 mt-1 font-semibold"></p>
+    <div id="ayatWrap" class="mt-4 rounded-xl border-l-4 border-amber-400 bg-amber-50 p-3 sm:p-4 dark:bg-slate-800/70">
+      <p id="ayatText" class="italic leading-relaxed text-slate-900 dark:text-slate-100"></p>
+      <p id="ayatRef" class="text-xs text-amber-700 mt-1 font-semibold dark:text-amber-300"></p>
     </div>
 
-    <div id="pBody" class="mt-4 text-slate-100"></div>
+    <div id="pBody" class="mt-4 text-slate-900 dark:text-slate-100"></div>
 
     <div class="mt-6 flex items-center justify-between text-xs text-slate-500">
       <span>Spasi / Enter / → = Lanjut · ← = Kembali · geser di HP</span>
@@ -131,13 +143,13 @@
 
 <!-- Bead strip (mobile + quick nav) -->
 <div class="fixed bottom-16 left-0 right-0 z-20 px-3">
-  <div id="beadStrip" class="max-w-7xl mx-auto flex gap-1.5 overflow-x-auto py-2 px-2 rounded-xl bg-slate-950/80 border border-slate-800 backdrop-blur"></div>
+  <div id="beadStrip" class="max-w-7xl mx-auto flex gap-1.5 overflow-x-auto py-2 px-2 rounded-xl bg-white/85 border border-slate-300 backdrop-blur dark:bg-slate-950/80 dark:border-slate-800"></div>
 </div>
 
 <!-- Fixed bottom nav -->
-<nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 backdrop-blur">
+<nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
   <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-    <button id="btnBack" class="justify-self-start px-4 sm:px-6 py-2.5 rounded-xl border border-slate-700 font-semibold disabled:opacity-30">← Kembali</button>
+    <button id="btnBack" class="justify-self-start px-4 sm:px-6 py-2.5 rounded-xl border border-slate-300 font-semibold disabled:opacity-30 dark:border-slate-700">← Kembali</button>
     <span class="text-[11px] text-slate-500 hidden sm:block">Bagikan layar ini di Zoom / Google Meet</span>
     <button id="btnNext" class="justify-self-end px-6 sm:px-10 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">Lanjut →</button>
   </div>
@@ -145,17 +157,17 @@
 
 <!-- Welcome -->
 <div id="setupModal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3">
-  <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:p-6 max-h-[90vh] overflow-y-auto text-center">
+  <div class="w-full max-w-lg rounded-2xl border border-slate-300 bg-white p-4 sm:p-6 max-h-[90vh] overflow-y-auto text-center dark:border-slate-700 dark:bg-slate-900">
     <div class="text-4xl">📿</div>
     <h2 class="font-bold text-2xl mt-1">Rosario</h2>
-    <p class="text-xs text-slate-400">Doa Rosario Bahasa Indonesia — sendiri atau kelompok</p>
-    <p class="text-sm text-slate-300 mt-3">Hari ini: <span id="todayLine" class="font-semibold text-slate-100"></span></p>
+    <p class="text-xs text-slate-500 dark:text-slate-400">Doa Rosario Bahasa Indonesia — sendiri atau kelompok</p>
+    <p class="text-sm text-slate-600 mt-3 dark:text-slate-300">Hari ini: <span id="todayLine" class="font-semibold text-slate-900 dark:text-slate-100"></span></p>
     <div class="mt-1 flex items-center justify-center gap-2 flex-wrap">
-      <span class="text-sm">Peristiwa: <span id="welcomeMystery" class="font-bold text-amber-300"></span></span>
-      <button id="btnChangeMystery" class="text-[11px] px-2 py-1 rounded-lg border border-slate-600 text-slate-300">Ganti Peristiwa</button>
+      <span class="text-sm">Peristiwa: <span id="welcomeMystery" class="font-bold text-amber-600 dark:text-amber-300"></span></span>
+      <button id="btnChangeMystery" class="text-[11px] px-2 py-1 rounded-lg border border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300">Ganti Peristiwa</button>
     </div>
     <div id="mysteryPickRow" class="mt-2" style="display:none">
-      <select id="mysteryChoice" class="w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400 text-left">
+      <select id="mysteryChoice" class="w-full text-sm bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-amber-400 text-left dark:bg-slate-950 dark:border-slate-700">
         <option value="gembira">Peristiwa Gembira</option>
         <option value="sedih">Peristiwa Sedih</option>
         <option value="mulia">Peristiwa Mulia</option>
@@ -164,34 +176,34 @@
     </div>
 
     <div id="resumeBox" class="mt-3 rounded-xl border border-sky-500/50 bg-sky-500/10 p-3" style="display:none">
-      <p class="text-sm font-semibold text-sky-200">Lanjutkan doa Rosario yang terputus?</p>
-      <p id="resumeDetail" class="text-xs text-slate-300 mt-0.5"></p>
+      <p class="text-sm font-semibold text-sky-700 dark:text-sky-200">Lanjutkan doa Rosario yang terputus?</p>
+      <p id="resumeDetail" class="text-xs text-slate-600 mt-0.5 dark:text-slate-300"></p>
       <div class="grid grid-cols-2 gap-2 mt-2">
         <button id="btnResume" class="py-2 rounded-xl bg-sky-500 text-slate-950 text-sm font-bold">Ya, Lanjutkan</button>
-        <button id="btnFresh" class="py-2 rounded-xl border border-slate-600 text-sm">Mulai Baru</button>
+        <button id="btnFresh" class="py-2 rounded-xl border border-slate-300 text-sm dark:border-slate-600">Mulai Baru</button>
       </div>
     </div>
 
     <div class="grid gap-2 mt-4">
       <button id="btnStartSingle" class="w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-bold">Mulai Rosario Pribadi</button>
-      <button id="btnStartGroup" class="w-full py-3 rounded-xl border border-amber-400/70 text-amber-200 font-bold">Mulai Rosario Kelompok</button>
-      <p class="text-[11px] text-slate-400 -mt-1">Gunakan mode Rosario Kelompok untuk membagi giliran doa pada lebih dari 1 orang.</p>
+      <button id="btnStartGroup" class="w-full py-3 rounded-xl border border-amber-500 text-amber-700 font-bold dark:border-amber-400/70 dark:text-amber-200">Mulai Rosario Kelompok</button>
+      <p class="text-[11px] text-slate-500 -mt-1 dark:text-slate-400">Gunakan mode Rosario Kelompok untuk membagi giliran doa pada lebih dari 1 orang.</p>
     </div>
 
     <div id="groupOpts" style="display:none" class="text-left">
       <div class="grid grid-cols-2 gap-2 mb-2 mt-2">
         <div>
-          <label class="text-xs font-semibold text-slate-300">Jumlah umat (2–50)</label>
-          <input id="userCount" type="number" min="2" max="50" value="4" class="mt-1 w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400" />
+          <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Jumlah umat (2–50)</label>
+          <input id="userCount" type="number" min="2" max="50" value="4" class="mt-1 w-full text-sm bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-amber-400 dark:bg-slate-950 dark:border-slate-700" />
         </div>
         <div>
-          <label class="text-xs font-semibold text-slate-300">Nama pemimpin</label>
-          <input id="leaderInput" value="Pemimpin" class="mt-1 w-full text-sm bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-amber-400" />
+          <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Nama pemimpin</label>
+          <input id="leaderInput" value="Pemimpin" class="mt-1 w-full text-sm bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-amber-400 dark:bg-slate-950 dark:border-slate-700" />
         </div>
       </div>
       <div class="flex items-center justify-between">
-        <label class="text-xs font-semibold text-slate-300">Nama umat (bergiliran Salam Maria 1–50, berlanjut antar-peristiwa)</label>
-        <button id="resetNames" class="text-[11px] underline text-slate-400">Reset jadi Umat 1..N</button>
+        <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Nama umat (bergiliran Salam Maria 1–50, berlanjut antar-peristiwa)</label>
+        <button id="resetNames" class="text-[11px] underline text-slate-500 dark:text-slate-400">Reset jadi Umat 1..N</button>
       </div>
       <div id="nameList" class="mt-1 space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
       <button id="setupClose" class="mt-3 w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">Mulai Berdoa Kelompok →</button>
