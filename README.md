@@ -7,22 +7,27 @@ Statis, gratis, cocok untuk doa sendiri maupun share-screen kelompok via Zoom / 
 - Mode kelompok (2–50 umat, default `Umat 1..N`): badge `Giliran: …` hanya di 50× Salam Maria, bergiliran kontinu antar-peristiwa. Bagian lain dipimpin Pemimpin.
 - Autodetect peristiwa: hari + masa liturgi (Adven/Natal → Gembira, Pra-Paskah → Sedih, Paskah → Mulia, Biasa → ikut hari: Sen/Sab Gembira, Sel/Jum Sedih, Rab/Min Mulia, Kam Terang). Bisa diganti manual.
 
-## Jalankan lokal
+## Hosting
 
-```bash
-python3 -m http.server 8000
-# buka http://localhost:8000
-```
+1. **Pakai langsung (milik saya):**
+   `https://xiphoideuz.github.io/rosa`
 
-## Mirror ke GitHub Pages
+2. **Jalankan lokal (run locally):**
 
-Webapp ini bersifat pasif (HTML/CSS/JS statis, tanpa server) sehingga **GitHub Pages saja cukup, gratis permanen**. Tidak perlu Cloudflare Worker.
+   ```bash
+   python3 -m http.server 8000
+   # buka http://localhost:8000
+   ```
 
-1. **Push ke repository ini ke branch `main`.**
-2. Di GitHub → *Settings → Pages* → *Build and deployment* → *Source*: pilih `Deploy from branch` → `main` / `(root)`.
-3. Selesai. Situs akan tersedia di:
-   `https://xiphoideuz.github.io/rosa/`
+3. **Mirror ke GitHub Pages:**
 
-Atau bisa diaktifkan otomatis melalui GitHub Actions (workflow `.github/workflows/static.yml` sudah disertain).
+   Webapp ini bersifat pasif (HTML/CSS/JS statis, tanpa server) sehingga **GitHub Pages saja cukup, gratis permanen**. Tidak perlu Cloudflare Worker.
 
-Cloudflare hanya opsional: jika ingin custom domain / cache / analytics → tambahkan domain sebagai Pages project atau proxy DNS ke GitHub Pages. Worker tidak dibutuhkan (Worker untuk komputasi server-side; app ini 100% client-side).
+   1. **Push repository ini ke branch `main` milik Anda.**
+   2. Di GitHub → *Settings → Pages* → *Build and deployment* → *Source*: pilih `Deploy from branch` → `main` / `(root)`.
+   3. Selesai. Situs mirror Anda akan tersedia di:
+      `https://<username>.github.io/rosa/`
+
+   Atau bisa diaktifkan otomatis melalui GitHub Actions (workflow `.github/workflows/static.yml` sudah disertakan).
+
+   Cloudflare hanya opsional: jika ingin custom domain / cache / analytics → tambahkan domain sebagai Pages project atau proxy DNS ke GitHub Pages. Worker tidak dibutuhkan (Worker untuk komputasi server-side; app ini 100% client-side).
